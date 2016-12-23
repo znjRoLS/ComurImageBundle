@@ -375,10 +375,10 @@ class UploadController extends Controller
 
     private function addWatermark($imgSrc, $dstR){
 
-        $margeRight = (isset($config['watermarkConfig']['margeRight']) ? $config['watermarkConfig']['margeRight'] : 10;
-        $margeBottom = (isset($config['watermarkConfig']['margeBottom']) ? $config['watermarkConfig']['margeBottom'] : 10;
+        $margeRight = (isset($config['watermarkConfig']['margeRight'])) ? $config['watermarkConfig']['margeRight'] : 10;
+        $margeBottom = (isset($config['watermarkConfig']['margeBottom'])) ? $config['watermarkConfig']['margeBottom'] : 10;
         $widthReduceFactor = 
-            (isset($config['watermarkConfig']['widthReduceFactor']) ? $config['watermarkConfig']['widthReduceFactor'] : 5;
+            (isset($config['watermarkConfig']['widthReduceFactor'])) ? $config['watermarkConfig']['widthReduceFactor'] : 5;
 
         $fileLocator = $this->get('file_locator');
         $stampPath = $fileLocator->locate($config['watermarkConfig']['file']);
