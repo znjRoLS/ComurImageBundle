@@ -356,6 +356,10 @@ class UploadController extends Controller
         
         imagecopyresampled($dstR,$imgR,$destX,$destY,$srcX,$srcY,$destW,$destH,$srcW,$srcH);
 
+        if (isset($config['watermarkConfig']) && isset($config['watermarkConfig']['file'])) {
+            $this->addWatermark($imgSrc, $dstR);
+        }
+
         switch ($type) {
             case 'gif':
             case 'png':
@@ -367,5 +371,40 @@ class UploadController extends Controller
         }
         
         $writeFunc($dstR,$destSrc,$imageQuality);
+    }
+
+    private function addWatermark($imgSrc, $dstR){
+
+        $margeRight = (isset($config['watermarkConfig']['margeRight']) ? $config['watermarkConfig']['margeRight'] : 10;
+        $margeBottom = (isset($config['watermarkConfig']['margeBottom']) ? $config['watermarkConfig']['margeBottom'] : 10;
+        $widthReduceFactor = 
+            (isset($config['watermarkConfig']['widthReduceFactor']) ? $config['watermarkConfig']['widthReduceFactor'] : 5;
+
+        $fileLocator = $this->get('file_locator');
+        $stampPath = $fileLocator->locate($config['watermarkConfig']['file']);
+        $stamp = imagecreatefrompng($stampPath);
+
+        $im = $dstR;
+        list($stampWidth, $stampHeight) = getimagesize($stampPath);
+        list($imageWidth, $imageHeight) = getimagesize($imgSrc);
+        $newStampWidth = $imageWidth / $widthReduceFactor;
+        $newStampHeight = $newStampWidth * $stampHeight / $stampWidth;
+
+        $stampNew = imagecreatetruecolor($newStampWidth, $newStampHeight);
+        imagealphablending($stampNew, false);
+        imagesavealpha($stampNew,true);
+
+        imagecopyresized($stampNew, $stamp, 0, 0, 0, 0, $newStampWidth, $newStampHeight, $stampWidth, $stampHeight);
+
+        imagecopy(
+            $im,
+            $stampNew, 
+            imagesx($im) - imagesx($stampNew) - $margeRight, 
+            imagesy($im) - imagesy($stampNew) - $margeBottom, 
+            0, 
+            0, 
+            imagesx($stampNew), 
+            imagesy($stampNew)
+        );
     }
 }
