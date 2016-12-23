@@ -80,9 +80,12 @@ class CroppableImageType extends AbstractType
             'thumbs' => null
         );
 
+        $watermarkConfig = null;
+
         $resolver->setDefaults(array(
             'uploadConfig' => $uploadConfig,
             'cropConfig' => $cropConfig,
+            'watermarkConfig' => $watermarkConfig,
             // 'compound' => function(Options $options, $value) use($cropConfig){
             //     return $options['uploadConfig']['saveOriginal'] ? true : false;
             // },
@@ -115,6 +118,12 @@ class CroppableImageType extends AbstractType
             'cropConfig' => function(Options $options, $value) use($cropConfig){
                 return array_merge($cropConfig, $value);
             },
+            'watermarkConfig' => function(Options $options, $value) use ($watermarkConfig){
+                if ($watermarkConfig) {
+                    return array_merge($watermarkConfig, $value);
+                }
+                return $value;
+            },
             // 'compound' => function(Options $options, $value) use($cropConfig){
             //     return $options['uploadConfig']['saveOriginal'] ? true : false;
             // }
@@ -139,6 +148,7 @@ class CroppableImageType extends AbstractType
 
         $uploadConfig = $options['uploadConfig'];
         $cropConfig = $options['cropConfig'];
+        $watermarkConfig = $options['watermarkConfig'];
 
         $fieldImage = null;
         if(isset($cropConfig['thumbs']) && count($thumbs = $cropConfig['thumbs']) > 0)
@@ -151,7 +161,7 @@ class CroppableImageType extends AbstractType
             }
         }
 
-        $view->vars['options'] = array('uploadConfig' => $uploadConfig, 'cropConfig' => $cropConfig, 'fieldImage' => $fieldImage);
+        $view->vars['options'] = array('uploadConfig' => $uploadConfig, 'cropConfig' => $cropConfig, 'watermarkConfig' => $watermarkConfig, 'fieldImage' => $fieldImage);
         $view->vars['attr'] = array('style' => 'opacity: 0;width: 0; max-width: 0; height: 0; max-height: 0;');
     }
 }

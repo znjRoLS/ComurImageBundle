@@ -181,7 +181,7 @@ class UploadController extends Controller
             
         }
 
-        $this->resizeCropImage($destSrc,$src,0,0,$x,$y,$destW,$destH,$w,$h);
+        $this->resizeCropImage($destSrc,$src,0,0,$x,$y,$destW,$destH,$w,$h, $config['watermarkConfig']);
 
         $galleryThumbOk = false;
         $isGallery = isset($config['uploadConfig']['isGallery']) ? $config['uploadConfig']['isGallery'] : false;
@@ -223,7 +223,7 @@ class UploadController extends Controller
 
                 $thumbName = $maxW.'x'.$maxH.'-'.$imageName;
                 $thumbSrc = $thumbDir . $thumbName;
-                $this->resizeCropImage($thumbSrc, $destSrc, 0, 0, 0, 0, $w, $h, $destW, $destH);
+                $this->resizeCropImage($thumbSrc, $destSrc, 0, 0, 0, 0, $w, $h, $destW, $destH, null);
                 if(isset($thumb['useAsFieldImage']) && $thumb['useAsFieldImage']){
                     $previewSrc = '/'.$config['uploadConfig']['webDir'] . '/' . $this->container->getParameter('comur_image.cropped_image_dir') . '/'. $this->container->getParameter('comur_image.thumbs_dir'). '/' . $thumbName;
                 }
@@ -316,7 +316,7 @@ class UploadController extends Controller
     /**
      * Crops or resizes image and writes it on disk
      */
-    private function resizeCropImage($destSrc, $imgSrc, $destX, $destY, $srcX, $srcY, $destW, $destH, $srcW, $srcH)
+    private function resizeCropImage($destSrc, $imgSrc, $destX, $destY, $srcX, $srcY, $destW, $destH, $srcW, $srcH, $watermarkConfig)
     {
         $type = strtolower(pathinfo($imgSrc, PATHINFO_EXTENSION));
 
@@ -356,8 +356,11 @@ class UploadController extends Controller
         
         imagecopyresampled($dstR,$imgR,$destX,$destY,$srcX,$srcY,$destW,$destH,$srcW,$srcH);
 
-        if (isset($config['watermarkConfig']) && isset($config['watermarkConfig']['file'])) {
-            $this->addWatermark($imgSrc, $dstR);
+      $logger = $this->get('logger');
+      $logger->info("herheee222");
+        if (isset($watermarkConfig) && isset($watermarkConfig['file'])) {
+          $logger->info("herheee4");
+            $this->addWatermark($imgSrc, $dstR, $watermarkConfig);
         }
 
         switch ($type) {
@@ -373,18 +376,21 @@ class UploadController extends Controller
         $writeFunc($dstR,$destSrc,$imageQuality);
     }
 
-    private function addWatermark($imgSrc, $dstR){
+    private function addWatermark($imgSrc, $dstR, $watermarkConfig){
 
-        $margeRight = (isset($config['watermarkConfig']['margeRight'])) ? $config['watermarkConfig']['margeRight'] : 10;
-        $margeBottom = (isset($config['watermarkConfig']['margeBottom'])) ? $config['watermarkConfig']['margeBottom'] : 10;
+        $logger = $this->get('logger');
+
+        $logger->info("herheee");
+
+        $margeRight = (isset($watermarkConfig['margeRight'])) ? $watermarkConfig['margeRight'] : 10;
+        $margeBottom = (isset($watermarkConfig['margeBottom'])) ? $watermarkConfig['margeBottom'] : 10;
         $widthReduceFactor = 
-            (isset($config['watermarkConfig']['widthReduceFactor'])) ? $config['watermarkConfig']['widthReduceFactor'] : 5;
+            (isset($watermarkConfig['widthReduceFactor'])) ? $watermarkConfig['widthReduceFactor'] : 5;
 
         $fileLocator = $this->get('file_locator');
-        $stampPath = $fileLocator->locate($config['watermarkConfig']['file']);
+        $stampPath = $fileLocator->locate($watermarkConfig['file']);
         $stamp = imagecreatefrompng($stampPath);
 
-        $im = $dstR;
         list($stampWidth, $stampHeight) = getimagesize($stampPath);
         list($imageWidth, $imageHeight) = getimagesize($imgSrc);
         $newStampWidth = $imageWidth / $widthReduceFactor;
@@ -396,11 +402,12 @@ class UploadController extends Controller
 
         imagecopyresized($stampNew, $stamp, 0, 0, 0, 0, $newStampWidth, $newStampHeight, $stampWidth, $stampHeight);
 
+      $logger->info("herheee?");
         imagecopy(
-            $im,
+            $dstR,
             $stampNew, 
-            imagesx($im) - imagesx($stampNew) - $margeRight, 
-            imagesy($im) - imagesy($stampNew) - $margeBottom, 
+            imagesx($dstR) - imagesx($stampNew) - $margeRight,
+            imagesy($dstR) - imagesy($stampNew) - $margeBottom,
             0, 
             0, 
             imagesx($stampNew), 
