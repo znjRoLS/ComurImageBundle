@@ -356,10 +356,7 @@ class UploadController extends Controller
         
         imagecopyresampled($dstR,$imgR,$destX,$destY,$srcX,$srcY,$destW,$destH,$srcW,$srcH);
 
-      $logger = $this->get('logger');
-      $logger->info("herheee222");
         if (isset($watermarkConfig) && isset($watermarkConfig['file'])) {
-          $logger->info("herheee4");
             $this->addWatermark($imgSrc, $dstR, $watermarkConfig);
         }
 
@@ -377,10 +374,6 @@ class UploadController extends Controller
     }
 
     private function addWatermark($imgSrc, $dstR, $watermarkConfig){
-
-        $logger = $this->get('logger');
-
-        $logger->info("herheee");
 
         $margeRight = (isset($watermarkConfig['margeRight'])) ? $watermarkConfig['margeRight'] : 10;
         $margeBottom = (isset($watermarkConfig['margeBottom'])) ? $watermarkConfig['margeBottom'] : 10;
@@ -402,7 +395,6 @@ class UploadController extends Controller
 
         imagecopyresized($stampNew, $stamp, 0, 0, 0, 0, $newStampWidth, $newStampHeight, $stampWidth, $stampHeight);
 
-      $logger->info("herheee?");
         imagecopy(
             $dstR,
             $stampNew, 
